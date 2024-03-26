@@ -14,8 +14,10 @@
 package ru.dimon6018.neko11
 
 import android.Manifest
+import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -23,8 +25,10 @@ import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.Settings
 import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
@@ -37,6 +41,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
@@ -44,6 +49,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import ru.dimon6018.neko11.NekoService.Companion.setupNotificationChannels
 import java.io.File
 import java.io.FileOutputStream
@@ -83,8 +92,39 @@ class NekoLand : AppCompatActivity(), PrefState.PrefsListener {
         mAdapter = CatAdapter()
         recyclerView.setAdapter(mAdapter)
         recyclerView.setLayoutManager(GridLayoutManager(this, 3))
-        val numCats = updateCats()
+        updateCats()
         applyWindowInsets(view)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if(!areNotificationsEnabled(NotificationManagerCompat.from(this))) {
+            notificationsDialog()
+        }
+    }
+    private fun areNotificationsEnabled(noman: NotificationManagerCompat) = when {
+        noman.areNotificationsEnabled().not() -> false
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+            noman.notificationChannels.firstOrNull { channel ->
+                channel.importance == NotificationManager.IMPORTANCE_NONE
+            } == null
+        }
+        else -> true
+    }
+    private fun notificationsDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setCancelable(false)
+            .setMessage(R.string.notifications_warning)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int ->
+                openSettings()
+            }.show()
+    }
+    private fun openSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri = Uri.fromParts("package", packageName, null)
+        intent.setData(uri)
+        startActivity(intent)
     }
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main, menu)
@@ -276,43 +316,53 @@ class NekoLand : AppCompatActivity(), PrefState.PrefsListener {
         }
 
         private fun shareCat(cat: Cat?) {
-            val dir = File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                getString(R.string.directory_name)
-            )
-            if (!dir.exists() && !dir.mkdirs()) {
-                Log.e("NekoLand", "save: error: can't create Pictures directory")
-                return
-            }
-            val png = File(dir, cat!!.name!!.replace("[/ #:]+".toRegex(), "_") + ".png")
-            val bitmap = cat.createBitmap(EXPORT_BITMAP_SIZE, EXPORT_BITMAP_SIZE)
-            try {
-                val os: OutputStream = FileOutputStream(png)
-                bitmap.compress(Bitmap.CompressFormat.PNG, 0, os)
-                os.close()
-                MediaScannerConnection.scanFile(
-                    this@NekoLand,
-                    arrayOf(png.toString()),
-                    arrayOf("image/png"),
-                    null
+            CoroutineScope(Dispatchers.IO).launch {
+                val dir = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                    getString(R.string.directory_name)
                 )
-                Log.v("Neko", "cat file: $png")
-                val uri: Uri =
-                    FileProvider.getUriForFile(this@NekoLand, "com.android.egg.fileprovider", png)
-                Log.v("Neko", "cat uri: $uri")
-                val intent = Intent(Intent.ACTION_SEND)
-                intent.putExtra(Intent.EXTRA_STREAM, uri)
-                intent.putExtra(Intent.EXTRA_SUBJECT, cat.name)
-                intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                intent.setType("image/png")
-                startActivity(Intent.createChooser(intent, null))
-            } catch (e: IOException) {
-                Log.e("NekoLand", "save: error: $e")
-                MaterialAlertDialogBuilder(this@NekoLand)
-                    .setTitle("Error")
-                    .setMessage("Details: $e")
-                    .setNegativeButton(android.R.string.ok, null)
-                    .show()
+                if (!dir.exists() && !dir.mkdirs()) {
+                    Log.e("NekoLand", "save: error: can't create Pictures directory")
+                    cancel("can't create Pictures directory")
+                }
+                val png = File(dir, cat!!.name!!.replace("[/ #:]+".toRegex(), "_") + ".png")
+                val bitmap = cat.createBitmap(EXPORT_BITMAP_SIZE, EXPORT_BITMAP_SIZE)
+                try {
+                    val os: OutputStream = FileOutputStream(png)
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 0, os)
+                    os.close()
+                    MediaScannerConnection.scanFile(
+                        this@NekoLand,
+                        arrayOf(png.toString()),
+                        arrayOf("image/png"),
+                        null
+                    )
+                    Log.v("Neko", "cat file: $png")
+                    val uri: Uri =
+                        FileProvider.getUriForFile(
+                            this@NekoLand,
+                            "com.android.egg.fileprovider",
+                            png
+                        )
+                    Log.v("Neko", "cat uri: $uri")
+                    val intent = Intent(Intent.ACTION_SEND)
+                    intent.putExtra(Intent.EXTRA_STREAM, uri)
+                    intent.putExtra(Intent.EXTRA_SUBJECT, cat.name)
+                    intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                    intent.setType("image/png")
+                    runOnUiThread {
+                        startActivity(Intent.createChooser(intent, null))
+                    }
+                } catch (e: IOException) {
+                    Log.e("NekoLand", "save: error: $e")
+                    runOnUiThread {
+                        MaterialAlertDialogBuilder(this@NekoLand)
+                            .setTitle("Error")
+                            .setMessage("Details: $e")
+                            .setNegativeButton(android.R.string.ok, null)
+                            .show()
+                    }
+                }
             }
         }
         private inner class CatHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

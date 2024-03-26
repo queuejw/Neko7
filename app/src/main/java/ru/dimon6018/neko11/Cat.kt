@@ -42,7 +42,6 @@ import java.util.Random
 import kotlin.math.abs
 import kotlin.math.min
 
-
 class Cat(context: Context, val seed: Long) : Drawable() {
     private var mNotSoRandom: Random? = null
     private var mBitmap: Bitmap? = null

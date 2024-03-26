@@ -86,9 +86,9 @@ class NekoService(context: Context, workerParams: WorkerParameters) :
                     val cat: Cat?
                     val cats = prefs.cats
                     val probs: IntArray = context.resources.getIntArray(R.array.food_new_cat_prob)
-                    val new_cat_prob =
+                    val newCatProb =
                         (if ((food < probs.size)) probs[food] else 50).toFloat() / 100f
-                    if (cats.isEmpty() || rng.nextFloat() <= new_cat_prob) {
+                    if (cats.isEmpty() || rng.nextFloat() <= newCatProb) {
                         title_message = context.getString(R.string.notification_title)
                         cat = newRandomCat(context, prefs)
                     } else {
@@ -135,7 +135,7 @@ class NekoService(context: Context, workerParams: WorkerParameters) :
             val workFoodRequest: OneTimeWorkRequest =
                 OneTimeWorkRequest.Builder(NekoService::class.java)
                     .addTag("FOODWORK")
-                    .setInitialDelay(time, TimeUnit.SECONDS)
+                    .setInitialDelay(time, TimeUnit.MINUTES)
                     .build()
             WorkManager.getInstance(context!!).enqueue(workFoodRequest)
         }

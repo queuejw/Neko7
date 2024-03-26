@@ -6,5 +6,6 @@
     <string name="dish">Миска</string>
     <string name="about">Подробнее</string>
     <string name="aboutText">Neko7 - это игра, основанная на пасхалке Android 7. Она была создана для розыгрыша в моём основном проекте - Neko11. Суть игры очень проста. Вам нужно собрать как можно больше котов. Развлекайтесь. \nTelegram: @nekoapp_news \nGithub: github.com/queuejw/neko11</string>
+    <string name="notifications_warning">Для работы приложения требуется разрешение на доступ к уведомлениям.</string>
 
 </resources>

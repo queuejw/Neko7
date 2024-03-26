@@ -21,6 +21,7 @@ import android.util.Log
 import ru.dimon6018.neko11.NekoService.Companion.stopFoodWork
 import ru.dimon6018.neko11.PrefState.PrefsListener
 
+@SuppressLint("NewApi")
 class NekoTile : TileService(), PrefsListener {
     private var mPrefs: PrefState? = null
 
