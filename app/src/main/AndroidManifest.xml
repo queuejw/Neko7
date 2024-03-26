@@ -35,7 +35,7 @@ Copyright (C) 2016 The Android Open Source Project
             android:name="NekoLand"
             android:exported="true"
             android:theme="@style/Theme.Neko7"
-            android:windowSoftInputMode="adjustPan">
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
                 <category android:name="android.intent.category.LAUNCHER"/>
