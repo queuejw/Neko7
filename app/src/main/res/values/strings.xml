@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (C) 2016 The Android Open Source Project
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<resources>
+    <string name="app_name" translatable="false">Neko7</string>
+    <string name="notification_name" translatable="false">Neko7</string>
+    <string name="notification_channel_name">New cats</string>
+    <string name="default_tile_name" translatable="false">\????</string>
+    <string name="notification_title">A cat is here.</string>
+    <string name="default_cat_name" translatable="false">Cat #%s</string>
+    <string name="directory_name" translatable="false">Cats</string>
+    <string name="confirm_delete" translatable="false">Forget %s?</string>
+    <string name="notification_title_return">A cat has returned.</string>
+    <string name="dish">Dish</string>
+    <string name="about">About</string>
+    <string name="aboutText">Neko7 is a game that is based on the Easter egg from Android 7. It is created for a fool\'s day prank in my main project - Neko11. The point of the game is to collect the maximum number of cats. Have fun with it. \nTelegram: @nekoapp_news \nGithub: github.com/queuejw/neko11</string>
+    <string-array name="food_names" translatable="false">
+        <item>Empty dish</item>
+        <item>Bits</item>
+        <item>Fish</item>
+        <item>Chicken</item>
+        <item>Treat</item>
+    </string-array>
+    <array name="food_icons">
+        <item>@drawable/food_dish</item>
+        <item>@drawable/food_bits</item>
+        <item>@drawable/food_sysuituna</item>
+        <item>@drawable/food_chicken</item>
+        <item>@drawable/food_cookie</item>
+    </array>
+    <integer-array name="food_intervals">
+        <item>20</item>
+        <item>35</item>
+        <item>45</item>
+        <item>60</item>
+        <item>90</item>
+    </integer-array>
+    <integer-array name="food_new_cat_prob">
+        <item>8</item>
+        <item>15</item>
+        <item>35</item>
+        <item>65</item>
+        <item>85</item>
+    </integer-array>
+</resources>
