@@ -31,11 +31,12 @@ Copyright (C) 2016 The Android Open Source Project
         android:background="@color/actionBar"
         android:elevation="4dp"
         app:title="@string/app_name"
+        app:titleTextColor="@android:color/white"
         app:popupTheme="@style/Theme.MaterialComponents.Light.NoActionBar"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/holder"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_gravity="center_horizontal" />
 </LinearLayout>

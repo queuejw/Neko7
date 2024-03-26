@@ -30,7 +30,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.util.Log
-import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -200,18 +199,14 @@ class NekoLand : AppCompatActivity(), PrefState.PrefsListener {
     }
 
     private fun showNameDialog(cat: Cat?) {
-        val context: Context = ContextThemeWrapper(
-            this,
-            com.google.android.material.R.style.Theme_MaterialComponents_Dialog_Alert
-        )
-        val view: View = LayoutInflater.from(context).inflate(R.layout.edit_text, null)
+        val view: View = LayoutInflater.from(this).inflate(R.layout.edit_text, null)
         val text: EditText = view.findViewById<View>(android.R.id.edit) as EditText
         text.setText(cat!!.name)
         text.setSelection(cat.name!!.length)
-        val size = context.resources
+        val size = resources
             .getDimensionPixelSize(android.R.dimen.app_icon_size)
         val catIcon: Drawable? = cat.createIcon(size, size).loadDrawable(this)
-        MaterialAlertDialogBuilder(context)
+        MaterialAlertDialogBuilder(this)
             .setTitle(" ")
             .setIcon(catIcon)
             .setView(view)
