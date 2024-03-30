@@ -32,7 +32,7 @@ class PrefState(private val mContext: Context) : OnSharedPreferenceChangeListene
         mPrefs.edit().remove(CAT_KEY_PREFIX + cat.seed).apply()
     }
 
-    val cats: List<Cat>
+    val cats: MutableList<Cat>
         get() {
             val cats = ArrayList<Cat>()
             val map = mPrefs.all

@@ -49,9 +49,12 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import ru.dimon6018.neko11.NekoService.Companion.setupNotificationChannels
 import java.io.File
 import java.io.FileOutputStream
@@ -59,10 +62,12 @@ import java.io.IOException
 import java.io.OutputStream
 
 
+
 class NekoLand : AppCompatActivity(), PrefState.PrefsListener {
     private var mPrefs: PrefState? = null
     private var mAdapter: CatAdapter? = null
     private var mPendingShareCat: Cat? = null
+    private var numCats = 0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -156,26 +161,33 @@ class NekoLand : AppCompatActivity(), PrefState.PrefsListener {
     }
 
     private fun updateCats(): Int {
-        val cats: Array<Cat?>
-        if (CAT_GEN) {
-            cats = arrayOfNulls(50)
-            for (i in cats.indices) {
-                cats[i] = Cat.create(this)
+        val catsUpdate: Deferred<Int> = CoroutineScope(Dispatchers.IO).async {
+            val cats: Array<Cat?>
+            if (CAT_GEN) {
+                cats = arrayOfNulls(50)
+                for (i in cats.indices) {
+                    cats[i] = Cat.create(this@NekoLand)
+                }
+            } else {
+                val hsv = FloatArray(3)
+                val list = mPrefs!!.cats
+                list.sortedWith { cat, cat2 ->
+                    Color.colorToHSV(cat.bodyColor, hsv)
+                    val bodyH1 = hsv[0]
+                    Color.colorToHSV(cat2.bodyColor, hsv)
+                    val bodyH2 = hsv[0]
+                    bodyH1.compareTo(bodyH2)
+                }
+                cats = list.toTypedArray<Cat?>()
             }
-        } else {
-            val hsv = FloatArray(3)
-            val list = mPrefs!!.cats
-            list.sortedWith { cat, cat2 ->
-                Color.colorToHSV(cat.bodyColor, hsv)
-                val bodyH1 = hsv[0]
-                Color.colorToHSV(cat2.bodyColor, hsv)
-                val bodyH2 = hsv[0]
-                bodyH1.compareTo(bodyH2)
-            }
-            cats = list.toTypedArray<Cat?>()
+            mAdapter!!.setCats(cats)
+
+            return@async cats.size
         }
-        mAdapter!!.setCats(cats)
-        return cats.size
+        runBlocking {
+            numCats = catsUpdate.await()
+        }
+        return numCats
     }
 
     private fun onCatClick(cat: Cat?) {
@@ -336,7 +348,7 @@ class NekoLand : AppCompatActivity(), PrefState.PrefsListener {
                     val uri: Uri =
                         FileProvider.getUriForFile(
                             this@NekoLand,
-                            "com.android.egg.fileprovider",
+                            "ru.dimon6018.neko11.fileprovider",
                             png
                         )
                     Log.v("Neko", "cat uri: $uri")
