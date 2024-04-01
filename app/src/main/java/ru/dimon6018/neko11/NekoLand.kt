@@ -49,12 +49,9 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import ru.dimon6018.neko11.NekoService.Companion.setupNotificationChannels
 import java.io.File
 import java.io.FileOutputStream
@@ -62,18 +59,16 @@ import java.io.IOException
 import java.io.OutputStream
 
 
-
 class NekoLand : AppCompatActivity(), PrefState.PrefsListener {
     private var mPrefs: PrefState? = null
     private var mAdapter: CatAdapter? = null
     private var mPendingShareCat: Cat? = null
     private var numCats = 0
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.neko_activity)
         mPrefs = PrefState(this)
+
         if(!mPrefs!!.isConfigured()) {
             mPrefs!!.setConf(true)
             setupNotificationChannels(this)
@@ -90,7 +85,7 @@ class NekoLand : AppCompatActivity(), PrefState.PrefsListener {
             supportActionBar!!.setDisplayShowHomeEnabled(true)
         }
         window.statusBarColor = ContextCompat.getColor(this, R.color.actionBar)
-        mPrefs!!.setListener(this)
+        mPrefs?.setListener(this)
         val recyclerView: RecyclerView = findViewById(R.id.holder)
         val view = findViewById<LinearLayout>(R.id.frame)
         mAdapter = CatAdapter()
@@ -102,8 +97,17 @@ class NekoLand : AppCompatActivity(), PrefState.PrefsListener {
 
     override fun onStart() {
         super.onStart()
-        if(!areNotificationsEnabled(NotificationManagerCompat.from(this))) {
-            notificationsDialog()
+        try {
+            if (!areNotificationsEnabled(NotificationManagerCompat.from(this))) {
+                notificationsDialog()
+            }
+        } catch (e: Exception) {
+            MaterialAlertDialogBuilder(this)
+                .setCancelable(false)
+                .setTitle("error")
+                .setMessage(e.toString())
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
         }
     }
     private fun areNotificationsEnabled(noman: NotificationManagerCompat) = when {
@@ -161,35 +165,27 @@ class NekoLand : AppCompatActivity(), PrefState.PrefsListener {
     }
 
     private fun updateCats(): Int {
-        val catsUpdate: Deferred<Int> = CoroutineScope(Dispatchers.IO).async {
-            val cats: Array<Cat?>
-            if (CAT_GEN) {
-                cats = arrayOfNulls(50)
-                for (i in cats.indices) {
-                    cats[i] = Cat.create(this@NekoLand)
-                }
-            } else {
-                val hsv = FloatArray(3)
-                val list = mPrefs!!.cats
-                list.sortedWith { cat, cat2 ->
-                    Color.colorToHSV(cat.bodyColor, hsv)
-                    val bodyH1 = hsv[0]
-                    Color.colorToHSV(cat2.bodyColor, hsv)
-                    val bodyH2 = hsv[0]
-                    bodyH1.compareTo(bodyH2)
-                }
-                cats = list.toTypedArray<Cat?>()
+        val cats: Array<Cat?>
+        if (CAT_GEN) {
+            cats = arrayOfNulls(50)
+            for (i in cats.indices) {
+                cats[i] = Cat.create(this@NekoLand)
             }
-            mAdapter!!.setCats(cats)
-
-            return@async cats.size
+        } else {
+            val hsv = FloatArray(3)
+            val list = mPrefs!!.cats
+            list.sortedWith { cat, cat2 ->
+                Color.colorToHSV(cat.bodyColor, hsv)
+                val bodyH1 = hsv[0]
+                Color.colorToHSV(cat2.bodyColor, hsv)
+                val bodyH2 = hsv[0]
+                bodyH1.compareTo(bodyH2)
+            }
+            cats = list.toTypedArray<Cat?>()
         }
-        runBlocking {
-            numCats = catsUpdate.await()
-        }
-        return numCats
+        mAdapter!!.setCats(cats)
+        return cats.size
     }
-
     private fun onCatClick(cat: Cat?) {
         if (CAT_GEN) {
             if (cat != null) {

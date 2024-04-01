@@ -28,6 +28,7 @@ Copyright (C) 2016 The Android Open Source Project
     <string name="about">About</string>
     <string name="aboutText">Neko7 is a game that is based on the Easter egg from Android 7. It is created for a fool\'s day prank in my main project - Neko11. The point of the game is to collect the maximum number of cats. Have fun with it. \nTelegram: @nekoapp_news \nGithub: github.com/queuejw/neko11</string>
     <string name="notifications_warning">The app requires permission to access notifications.</string>
+    <string name="copy">Скопировать</string>
     <string-array name="food_names" translatable="false">
         <item>Empty dish</item>
         <item>Bits</item>

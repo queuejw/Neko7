@@ -26,6 +26,7 @@ Copyright (C) 2016 The Android Open Source Project
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
+        android:name=".NekoApp"
         android:label="@string/app_name"
         android:icon="@mipmap/icon"
         android:theme="@style/Theme.Neko7">
@@ -48,6 +49,11 @@ Copyright (C) 2016 The Android Open Source Project
                   android:excludeFromRecents="true"
                   android:theme="@android:style/Theme.Material.Light.Dialog.NoActionBar"
                   android:showOnLockScreen="true" />
+
+        <activity
+            android:name=".NekoCrash"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
 
         <!-- The quick settings tile, disabled by default -->
         <service
